@@ -61,3 +61,18 @@ print("R for quaternion2R was:")
 print(R)
 
 # %%
+# Problem 2
+R = tr.roty(np.pi/2) @ tr.rotz(np.pi/4)
+AA = tr.R2axis(R)
+Q = tr.R2quat(R)
+print("Axis Angle for Problem 2")
+print(AA)
+print("Quat for Prob 2")
+print(Q)
+# %%
+# Problem 3
+RPY = tr.rotz(np.pi/2) @ tr.roty(np.pi/3) @ tr.rotx(np.pi/4)
+
+Z_Transform = np.array([0,0,1]).T @ RPY[2]
+
+Base = tr.R2rpy(RPY)

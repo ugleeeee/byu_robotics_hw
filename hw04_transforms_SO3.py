@@ -19,9 +19,9 @@ def R2rpy(R: NDArray) -> NDArray:
     # for the arctangent and "**2" for squared terms.
     # TODO - fill out this equation for rpy
 
-    roll =
-    pitch =
-    yaw =
+    roll = np.arctan2(R[1,0], R[0,0])
+    pitch = np.arctan2(-1*R[2,0],np.sqrt(R[2,1]**2 + R[2,2]**2))
+    yaw = np.arctan2(R[2,1],R[2,2])
 
     return np.array([roll, pitch, yaw])
 
@@ -38,10 +38,11 @@ def R2axis(R: NDArray) -> NDArray:
     """
 
     # see equation (2.27) and (2.28) on pg. 54, using functions like "np.acos," "np.sin," etc.
-    ang = # TODO - fill out here.
+    ang = np.arccos(.5*(R[0,0]+R[1,1]+R[2,2]-1))
     axis_angle = np.array([ang,
-                            , # TODO - fill out here, each row will be a function of "ang"
-                            ,
+                           (R[2,1]-R[1,2])/(2*np.sin(ang)),
+                            (R[1,2]-R[2,1])/(2*np.sin(ang)),
+                            (R[1,0]-R[0,1])/(2*np.sin(ang))
                             ])
 
     return axis_angle
@@ -59,7 +60,9 @@ def axis2R(angle: float, axis: NDArray) -> NDArray:
     :return R: 3x3 numpy array representing the rotation matrix.
     """
     # TODO fill this out
-    R =
+    R = np.array([[axis[0]**2*(1-np.cos(angle))+np.cos(angle), axis[0]*axis[1]*(1-np.cos(angle))-axis[2]*np.sin(angle), axis[0]*axis[2]*(1-np.cos(angle))+axis[1]*np.sin(angle)],
+                   [axis[0]*axis[1]*(1-np.cos(angle))+axis[2]*np.cos(angle), axis[1]*axis[1]*(1-np.cos(angle))+np.cos(angle), axis[1]*axis[2]*(1-np.cos(angle))-axis[0]*np.sin(angle)],
+                   [axis[0]*axis[2]*(1-np.cos(angle))-axis[1]*np.sin(angle), axis[2]*axis[1]*(1-np.cos(angle))+axis[0]*np.cos(angle), axis[2]*axis[2]*(1-np.cos(angle))+np.cos(angle)]])
     return clean_rotation_matrix(R)
 
 
@@ -75,10 +78,10 @@ def R2quat(R: NDArray) -> NDArray:
     """
     # TODO, see equation (2.34) and (2.35) on pg. 55, using functions like "sp.sqrt," and "sp.sign"
 
-    return np.array([,
-                     ,
-                     ,
-                     ])
+    return np.array([.5*np.sqrt(R[0,0] + R[1,1] + R[2,2] + 1),
+                     .5*np.sign(R[2,1]-R[1,2])*np.sqrt(R[0,0]-R[1,1]-R[2,2]+1),
+                     .5*np.sign(R[0,2]-R[2,0])*np.sqrt(R[1,1]-R[2,2]-R[0,0]+1),
+                     .5*np.sign(R[1,0]-R[0,1])*np.sqrt(R[2,2]-R[0,0]-R[1,1]+1)])
 
 
 def quat2R(q: NDArray) -> NDArray:
@@ -91,11 +94,13 @@ def quat2R(q: NDArray) -> NDArray:
     :return R: numpy array, 3x3 rotation matrix.
     """
     # TODO, extract the entries of q below, and then calculate R
-    nu =
-    ex =
-    ey =
-    ez =
-    R =
+    nu = q[0]
+    ex = q[1]
+    ey = q[2]
+    ez = q[3]
+    R = np.array([[2*(nu**2 + ex**2)-1, 2*(ex*ey-nu*ez), 2*(ex*ez+nu*ey)],
+                  [2*(ex*ey+nu*ez), 2*(nu**2+ey**2)-1, 2*(ey*ez-nu*ex)],
+                  [2*(ex*ez-nu*ey), 2*(ey*ez+nu*ex), 2*(nu**2+ez**2)-1]])
     return clean_rotation_matrix(R)
 
 
@@ -117,29 +122,29 @@ def euler2R(th1: float, th2: float, th3: float, order: str='xyz') -> NDArray:
     # TODO - fill out each expression for R based on the condition
     # (hint: use your rotx, roty, rotz functions)
     if order == 'xyx':
-        R =
+        R = rotx(th1) @ roty(th2) @ rotx(th3)
     elif order == 'xyz':
-        R =
+        R = rotx(th1) @ roty(th2) @ rotz(th3)
     elif order == 'xzx':
-        R =
+        R = rotx(th1) @ rotz(th2) @ rotx(th3)
     elif order == 'xzy':
-        R =
+        R = rotx(th1) @ rotz(th2) @ roty(th3)
     elif order == 'yxy':
-        R =
+        R = roty(th1) @ rotx(th2) @ roty(th3)
     elif order == 'yxz':
-        R =
+        R = roty(th1) @ rotx(th2) @ rotz(th3)
     elif order == 'yzx':
-        R =
+        R = roty(th1) @ rotz(th2) @ rotx(th3)
     elif order == 'yzy':
-        R =
+        R = roty(th1) @ rotz(th2) @ roty(th3)
     elif order == 'zxy':
-        R =
+        R = rotz(th1) @ rotx(th2) @ roty(th3)
     elif order == 'zxz':
-        R =
+        R = rotz(th1) @ rotx(th2) @ rotz(th3)
     elif order == 'zyx':
-        R =
+        R = rotz(th1) @ roty(th2) @ rotx(th3)
     elif order == 'zyz':
-        R =
+        R = rotz(th1) @ roty(th2) @ rotz(th3)
     else:
         raise ValueError("Invalid Order!")
 

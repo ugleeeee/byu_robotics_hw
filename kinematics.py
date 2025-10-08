@@ -12,6 +12,7 @@ Marc Killpack, Sept 21, 2022 and Sept 21, 2023
 """
 
 import numpy as np
+import transforms as tr
 from numpy.typing import NDArray
 from typing import Callable, Iterable
 
@@ -42,9 +43,21 @@ def dh2A(dh: list[float], jt: str) -> Callable[[float], NDArray]:
             # Do this in terms of the variables "dh" and "q" (so that one of the entries in your dh list or array
             # will need to be added to q).
 
-            T =
+            theta = dh[0] + q
+            d = dh[1]
+            a = dh[2]
+            alpha = dh[3]
 
-            return T
+            cth = np.cos(theta)
+            sth = np.sin(theta)
+            cal = np.cos(alpha)
+            sal = np.sin(alpha)
+
+            return np.array(
+                [[cth, -sth * cal, sth *sal, a * cth],
+                    [sth, cth * cal, -cth * sal, a * sth],
+                    [0, sal, cal, d],
+                    [0, 0, 0, 1]])
 
     # if joint is prismatic implement correct equations here:
     else:
@@ -54,9 +67,21 @@ def dh2A(dh: list[float], jt: str) -> Callable[[float], NDArray]:
             # Do this in terms of the variables "dh" and "q" (so that one of the entries in your dh list or array
             # will need to be added to q).
 
-            T =
+            theta = dh[0]
+            d = dh[1] + q
+            a = dh[2]
+            alpha = dh[3]
 
-            return T
+            cth = np.cos(theta)
+            sth = np.sin(theta)
+            cal = np.cos(alpha)
+            sal = np.sin(alpha)
+
+            return np.array(
+                [[cth, -sth * cal, sth * sal, a * cth],
+                    [sth, cth * cal, -cth * sal, a * sth],
+                    [0, sal, cal, d],
+                    [0, 0, 0, 1]])
 
     return A
 
@@ -89,6 +114,7 @@ class SerialArm:
             None for not implemented (these are only used in visualization).
         """
         self.dh = dh
+        self.dh2a = dh2A
         self.n = len(dh)
 
         # we will use this list to store the A matrices for each set/row of DH parameters.
@@ -106,7 +132,7 @@ class SerialArm:
             # TODO use the function definition above (dh2A), and the dh parameters and
             # joint type to make a function and then append that function to the
             # "transforms" list (use the versions from self because they have error checks).
-            A =
+            A = self.dh2a(self.dh[i], self.jt[i])
             self.transforms.append(A)
 
         # assigning the base, and tip transforms that will be added to the default DH transformations.
@@ -193,10 +219,87 @@ class SerialArm:
         # unsure about the role of each of these variables. This is mostly easily done with some if/else
         # statements and a "for" loop to add the effect of each subsequent A_i(q_i). But you can
         # organize the code any way you like.
+        # print(self.transforms)
 
-        T = np.eye(4)
+        if(index==None):
+            if(base==True):
+                T_out = self.base
+            else:
+                T_out = np.eye(4)
 
-        return T
+            for i in range(len(self.transforms)):
+                func = self.transforms[i]
+                T_out = T_out @ func(q[i])
+
+            if(tip==True):
+                T_out = T_out @ self.tip
+        
+        
+        elif(type(index)==int): # For creating T from 0 to int
+            if(base==True):
+                T_out = self.base
+            else:
+                T_out = np.eye(4)
+            for i in range(index):
+                func = self.transforms[i]
+                T_out = T_out @ func(q[i])
+            
+        elif(len(index)==2):
+            start = index[0]
+            end = index[1]
+            T_out = np.eye(4)
+            for i in range(end - start):
+                func = self.transforms[start + i]
+                print(func(q[i]))
+                T_out = T_out @ func(q[i])
+            
+        return T_out
+    
+
+    def jacob(self, q: list[float]|NDArray, index: int|None=None, base: bool=False,
+              tip: bool=False) -> NDArray:
+        """
+        J = arm.jacob(q)
+
+        Calculates the geometric jacobian for a specified frame of the arm in a given configuration
+
+        :param list[float] | NDArray q: joint positions
+        :param int | None index: joint frame at which to calculate the Jacobian
+        :param bool base: specify whether to include the base transform in the Jacobian calculation
+        :param bool tip: specify whether to include the tip transform in the Jacobian calculation
+        :return J: 6xN numpy array, geometric jacobian of the robot arm
+        """
+
+        if index is None:
+            index = self.n
+        assert 0 <= index <= self.n, 'Invalid index value!'
+
+        # TODO - start by declaring a zero matrix that is the correct size for the Jacobian
+        J = np.zeros((6,index))
+
+        # TODO - find the current position of the point of interest (usually origin of frame "n")
+        # using your fk function this will likely require additional intermediate variables than
+        # what is shown here.
+        pe = self.fk(q)[3,:3]
+        pi = self.fk(q,self.n-1)[3,:3]
+
+
+        # TODO - calculate all the necessary values using your "fk" function, and fill every column
+        # of the jacobian using this "for" loop. Functions like "np.cross" may also be useful.
+        for i in range(index):
+            z = self.fk(q,i)[2,:3]
+
+            # check if joint is revolute
+            if self.jt[i] == 'r':
+                J[:3,i] = np.cross(z,(pe-pi))
+                J[3:,i] = z
+
+            # if not assume joint is prismatic
+            else:
+                J[:3,i] = z
+
+        return J
+
 
 
 if __name__ == "__main__":
