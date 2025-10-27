@@ -784,8 +784,8 @@ class ArmMeshObject:
         self.frame_objects.append(FrameViz(scale=arm_scale*frame_scale, axes_label='0'))
 
         link_width = np.max([arm_scale, 0.10])*0.20
-        joint_width = np.max([arm_scale, 0.10])*0.30
-        joint_height = np.max([arm_scale, 0.10])*0.70
+        joint_width = np.max([arm_scale, 0.10])*0.2
+        joint_height = np.max([arm_scale, 0.10])*0.4
 
         # TODO: change rotary joints from cuboids to cylinders.
         # See example from "add_marker" about to easily generate a
@@ -801,7 +801,7 @@ class ArmMeshObject:
             self.frame_objects.append(FrameViz(scale=arm_scale*frame_scale, axes_label=f'{i+1}'))
 
 
-        self.ee_object = EEMeshObject(scale=arm_scale*ee_scale)
+        self.ee_object = EEMeshObject(scale=arm_scale*ee_scale*.8)
         self.frame_objects.append(FrameViz(scale=arm_scale*frame_scale, axes_label='t'))
 
         self.mesh = np.zeros((0, 3, 3))
