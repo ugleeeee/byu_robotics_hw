@@ -51,6 +51,7 @@ if __name__ == "__main__":
       q_0 = [0, 0, 0, 0]
       goal = [2,4,3]
       obst_position = [2,2,2]
+      obst_dim = [2,3,4]
       obst_rad = 1.0 
 
       q_ik_slns = compute_robot_path(q_0, goal, obst_position, obst_rad)
@@ -60,7 +61,7 @@ if __name__ == "__main__":
       viz = VizScene()
       viz.add_arm(arm, joint_colors=[np.array([0.95, 0.13, 0.13, 1])]*arm.n)
       viz.add_marker(goal, radius=0.1)
-      viz.add_obstacle(obst_position, rad=obst_rad)
+      viz.add_box(obst_dim, obst_position, rad=obst_rad)
       for q in q_ik_slns:
             viz.update(qs=[q])
 

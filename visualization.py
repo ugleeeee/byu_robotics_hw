@@ -449,6 +449,64 @@ class VizScene:
             raise TypeError("Invalid index type")
         self.app.processEvents()
 
+    def add_box(self, dim, pos, color=yellow, rad=1.0):
+        if not isinstance(pos, (np.ndarray)):
+            pos = np.array(pos)
+
+        x = dim[0]/2
+        y = dim[1]/2
+        z = dim[2]/2
+
+        verts = np.array([
+            [-x, -y, -z], [ x, -y, -z], [ x,  y, -z], [-x,  y, -z], # Bottom face (0, 1, 2, 3)
+            [-x, -y,  z], [ x, -y,  z], [ x,  y,  z], [-x,  y,  z]  # Top face    (4, 5, 6, 7)
+        ], dtype=float) * rad
+
+        # Define the faces of the prism using indices into the vertices array
+        # Each face is composed of two triangles, so we need 12 triangles (2 per side * 6 sides)
+        # Faces are defined in an (Nf, 3) array
+        faces = np.array([
+            # Bottom
+            [0, 1, 2], [0, 2, 3],
+            # Top
+            [4, 5, 6], [4, 6, 7],
+            # Front
+            [0, 1, 5], [0, 5, 4],
+            # Back
+            [2, 3, 7], [2, 7, 6],
+            # Left
+            [0, 3, 7], [0, 7, 4],
+            # Right
+            [1, 2, 6], [1, 6, 5]
+        ])
+
+        # Create MeshData object
+        md = gl.MeshData(vertexes=verts, faces=faces)
+
+        m1 = gl.GLMeshItem(
+            meshdata=md,
+            smooth=True,
+            color=yellow
+        )
+        m1.translate(*pos)
+
+        self.obstacles.append(m1)
+        self.window.addItem(self.obstacles[-1])
+
+        self.app.processEvents()
+
+    def remove_box(self, index=None):
+        if index is None:
+            for obstacle in self.obstacles:
+                self.window.removeItem(obstacle)
+            self.obstacles = []
+        elif isinstance(index, int):
+            self.window.removeItem(self.obstacles[index])
+            self.obstacles.pop(index)
+        else:
+            raise TypeError("Invalid index type")
+        self.app.processEvents()
+
     def update(self, qs=None, As=None, poss=None):
         """
         :param np.ndarray|list|None qs: list of joint angles for each arm in the
