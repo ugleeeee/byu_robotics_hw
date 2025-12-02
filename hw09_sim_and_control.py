@@ -184,7 +184,11 @@ for i in range(len(q)):
 def system(t):
     return xs
 
-sol = solve_ivp(fun=system, t_span=[0,tf], t_eval=t_sim, y0=np.array([0, 0]))
+
+# print(x)
+print(t)
+print(xs)
+sol = solve_ivp(fun=lambda t, x: xs, t_span=[0,tf], t_eval=t_sim, y0=np.array([0, 0]))
 
 
 ## NOTE: In all of the plotting code below, I assume x = [qd, q]. If you used
@@ -222,8 +226,24 @@ pl.show()
 def eom(t, x, u, qdd_des, qd_des, q_des):
     x_dot = np.zeros(2*arm.n)
 
+    q = x[0:arm.n]
+    qd = x[arm.n:]
+    kp = 10
+    kd = 5
+    G_q = arm.get_G(q)
+    M_q_des = arm.get_M(q_des)
+    C_qqd_des = arm.get_C(q=q_des,qd=qd_des)
+    G_q_des = arm.get_G(q=q_des)
+    F_qd_des = arm.get_M(q=q_des)*q_des
+
     # TODO - calculate torque from a controller function (as in demo for one DoF)
     #      - then calculate qdd from that applied torque and other torques (C and G)
+    #PD with gravity
+    tau = kp*(q_des-q) + kd*(qd_des - qd) + G_q
+    #FF w PD
+    tau = kp*(q_des - q) + kd*(qd_des - qd) + M_q_des*qdd_des + C_qqd_des*qd_des + G_q_des + F_qd_des
+    #computed
+    tau = M_q*(qdd_des + kp*(q_des-q) + kd*(qd_des-qd)) + C_qqd_des*qd_des + G_q_des + F_qd_des
 
     return x_dot
 
@@ -251,9 +271,9 @@ qdd_des = sp.lambdify(t, qdd_des_sp, modules='numpy')
 # TODO define three different control functions and numerically integrate for each one.
 # If "sol" is output from simulation, plotting can look something like this:
 
-num_sec =
+num_sec = 10
 time = np.linspace(0, num_sec, num=100*num_sec)
-sol =
+sol = solve_ivp(fun=lambda t, x: xs, t_span=[0:num_sec])
 
 pl.figure()
 title = "PD + G control"

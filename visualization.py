@@ -239,11 +239,12 @@ class VizScene:
         self.window.addItem(a.mesh_object)
 
         def draw_axes(frame: FrameViz, label: bool):
-            for axis in frame.axes:
-                self.window.addItem(axis)
-            if label:
-                for txt in frame.axis_labels:
-                    self.window.addItem(txt)
+            return
+            # for axis in frame.axes:
+            #     self.window.addItem(axis)
+            # if label:
+            #     for txt in frame.axis_labels:
+            #         self.window.addItem(txt)
 
         if draw_frames:
             draw_axes(a.frame_objects[0], a.label_base)
@@ -449,7 +450,7 @@ class VizScene:
             raise TypeError("Invalid index type")
         self.app.processEvents()
 
-    def add_box(self, dim, pos, color=yellow, rad=1.0):
+    def add_box(self, dim, pos, bcolor=yellow, rad=1.0):
         if not isinstance(pos, (np.ndarray)):
             pos = np.array(pos)
 
@@ -486,7 +487,7 @@ class VizScene:
         m1 = gl.GLMeshItem(
             meshdata=md,
             smooth=True,
-            color=yellow
+            color=bcolor
         )
         m1.translate(*pos)
 

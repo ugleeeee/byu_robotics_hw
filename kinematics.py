@@ -346,9 +346,9 @@ class SerialArm:
         else:
             if target_distance > maximum_reach:
                 print("Target out of workspace, but finding closest solution anyway")
-            else:
-                print("Target passes naive reach test, distance is {:.1} and max reach is {:.1}".format(
-                    float(target_distance), float(maximum_reach)))
+            # else:
+                # print("Target passes naive reach test, distance is {:.1} and max reach is {:.1}".format(
+                    # float(target_distance), float(maximum_reach)))
 
         if not isinstance(K, np.ndarray):
             return q, error, count, False,  "No gain matrix 'K' provided"
@@ -404,7 +404,7 @@ class SerialArm:
                     time.sleep(1.0/2.0)
 
             e = get_error(q)
-            print("error is: ", np.linalg.norm(e), "\t count is: ", count)
+            # print("error is: ", np.linalg.norm(e), "\t count is: ", count)
 
         if debug==True: 
             viz.close_viz()
